@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200&display=swap" rel="stylesheet"> 
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>    
+<title>Minimal Business Card Generator</title>
+<style>
+h2 {
+    font-family: 'Poppins', sans-serif;
+    color: #008080;
+    font-size: 3em;
+    text-align: center;
+}
+#myform {
+	margin:0 auto;
+	width:500px;
+	padding:14px;
+}
+
+label {
+	width: 10em;
+	float: left;
+	margin-right: 0.5em;
+	display: block;
+	vertical-align: middle;
+}
+.submit {
+	float:right;
+}
+
+fieldset {
+	background:#EBF4FB none repeat scroll 0 0;
+	border:2px solid #B7DDF2;
+	width: 450px;
+}
+
+legend {
+	color: #fff;
+	background: #80D3E2;
+	border: 1px solid #781351;
+	padding: 2px 6px
+}
+.elements {
+	padding:10px;
+}
+p {
+	border-bottom:1px solid #B7DDF2;
+	color:#666666;
+	font-size:12px;
+	margin-bottom:20px;
+	padding-bottom:10px;
+}
+span {
+	color:#666666;
+	font-size:12px;
+	margin-bottom:1px;
+	
+}
+.btn{
+  padding: 4px 12px;
+  margin-bottom: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: #333333;
+  text-align: center;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
+  vertical-align: middle;
+  cursor: pointer;
+  background-color: #f5f5f5;
+  border: 1px solid #B7DDF2;
+  
+}
+
+.btn:hover{
+  color: #333333;
+  background-color: #e6e6e6;
+}
+
+</style>
+</head>
+
+<body>
+<div id="header">
+<h2>Minimalist Business Card Generator</h2>
+</div>
+<form id="myform" type="post">
+  <fieldset>
+    <legend>Busines Card Information</legend>
+    <p>Please enter your details</p>
+    <div class="elements">
+      <label for="name">Name :</label>
+      <input  required="required" type="text"  value="FirstName LastName" name="name"  size="20"  />
+    </div>
+
+    <div class="elements">
+        <label for="Profession">Profession :</label>
+        <input  required="required" type="text"  value="Profession" name="job"  size="20"  />
+      </div>
+
+    <div class="elements">
+        <label for="email">Email Address:</label>
+        <input  required="required" type="text"  value="bharath@example.org" name="email"  size="20"  />
+    </div>
+
+    <div class="elements">
+        <label for="portfolio">Portfolio:</label>
+        <input  required="required" type="text"  value="https://disruptivelabs.in" name="portfolio"  size="20"  />
+    </div>
+
+    <div class="elements">
+        <label for="phone">Mobile Number:</label>
+        <input  required="required" type="text"  value="+917676363810" name="phone"  size="20"  />
+    </div>
+
+    <div class="elements">
+        <label for="twitter">Twitter:</label>
+        <input  required="required" type="text"  value="@0xbharath" name="twitter"  size="20"  />
+    </div>
+   
+    <div class="submit">
+       <input type="submit" ali id="btn" name="btn" class="btn" value="Submit" />
+    </div>
+  </fieldset>
+</form>
+<!-- <script>
+            let formData = $("#myform").serializeArray();
+            let data = formData.reduce((acc, x) => acc[x.name] = x.value, {});
+            $.ajax({
+                url: "/create-card", 
+                type : "POST",
+                data : JSON.stringify(data), 
+                success : function(result) {
+                    alert(result);
+                    $("#myform")[0].reset();
+                },
+                error: function() {
+                    alert('Please enter valid URL');
+                }
+            })
+</script> -->
+
+<!-- <script>
+let formData = $("#myform").serializeArray();
+let data = formData.reduce((acc, x) => acc[x.name] = x.value, {});
+console.log(data)
+console.log(formData)
+
+$.ajax({
+  type: "POST",
+  url: "/create-card",
+  data: formData,
+  success: function(){},
+  dataType: "json",
+  contentType : "application/json"
+});
+</script> -->
+
+<script>
+    console.log("here!!")
+  function handleSubmit(event) {
+    event.preventDefault();
+
+    const data = new FormData(event.target);
+
+    const value = Object.fromEntries(data.entries());
+
+    console.log(JSON.stringify({ value }));
+
+    console.log("here!!")
+
+    const requestOptions = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(value)
+    };
+    fetch('/create-card', requestOptions)
+        .then( res => res.blob() )
+        .then( blob => {
+        var file = window.URL.createObjectURL(blob);
+        window.location.assign(file);
+        });
+
+  }
+
+  const form = document.querySelector('form');
+  form.addEventListener('submit', handleSubmit);
+
+</script>
+
+</body>
+</html>

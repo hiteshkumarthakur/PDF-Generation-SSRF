@@ -1,0 +1,8 @@
+{
+  "name": "string",
+  "job": "string",
+  "email": "user@example.com",
+  "portfolio": "https://appsecco.com",
+  "phone": "string",
+  "twitter": "string"
+}
