@@ -1,0 +1,12 @@
+Roadmap:
+    Done:
+        ☐ 
+    In Progress:
+        ☐ 
+    To Do:
+        ✔ Add HTML Sanitisation to non-vulnerable fields @done(22-06-27 10:29)
+        ✔ Code to delete the Final PDF & HTML files @done(22-06-27 17:27)
+        ✔ Remove packages that are not necessary @started(22-06-27 17:27) @done(22-06-27 17:27) @lasted(13s)
+        ☐ Dockerize the app
+    Backlog:
+        ☐ Structure the code as per best practices

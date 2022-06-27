@@ -82,6 +82,8 @@ async def create_card(card: Item, request: "Request", background_tasks: Backgrou
         options = {"enable-local-file-access": None}
         pdfkit.from_file(getcwd()+"/"+final_business_card_html_file,
         getcwd()+"/"+final_business_card_pdf_file, options=options)
+    except pdfkit.UnknownNetworkError as e:
+        print(e)
     except Exception as e:
         print(e)
         raise HTTPException(status_code=400, detail="Malformed Input Detected")
@@ -120,13 +122,17 @@ def ssrf_blacklist(user_input):
 
         ## Check if IP Addresses match 169.254.169.254
         for ip in ip_addresses_in_payload:
-            urls_in_payload.remove(ip)
-            if IPv4Address("169.254.169.254") == IPv4Address(ip):
-                raise HTTPException(status_code=400, detail="Malicious IP Detected!!")
+            try:
+                urls_in_payload.remove(ip)
+                if IPv4Address("169.254.169.254") == IPv4Address(ip):
+                    raise HTTPException(status_code=400, detail="Malicious IP Detected!!")
+            except ValueError as e:
+                pass
 
         print("URLs after", urls_in_payload)
 
-        ## Extract and remove any IP addresses
+        ## Extract and remove any I
+        # P addresses
         domains_in_payload =  []
         for url in urls_in_payload:
             ext = tldextract.extract(url)
@@ -147,16 +153,35 @@ def ssrf_blacklist(user_input):
         
         ## Check if domains have 302/301 resolution
         for domain in domains_in_payload:
+
+            ipPattern = re.compile("(?:(?:1\d\d|2[0-5][0-5]|2[0-4]\d|0?[1-9]\d|0?0?\d)\.){3}(?:1\d\d|2[0-5][0-5]|2[0-4]\d|0?[1-9]\d|0?0?\d)")
+
             print("Domain is", domain)
             try:
                 http_response = requests.get("http://"+domain,  allow_redirects=False)
                 print(http_response)
                 if http_response.status_code == 301 or http_response.status_code == 302 or http_response.status_code == 304:
                         raise HTTPException(status_code=400, detail="Malicious Redirection Detected!!")
-                https_response = requests.get("https://"+domain,  allow_redirects=False)
-            
-                if https_response.status_code == 301 or http_response.status_code == 302 or http_response.status_code == 304:
-                        raise HTTPException(status_code=400, detail="Malicious Redirection Detected!!")
+                else:
+                    pass
             except SSLError:
+                    raise HTTPException(status_code=400, detail="Something went wrong with the SSL")
+            except ConnectionError:
+                    raise HTTPException(status_code=400, detail="Something went wrong when server was making a connection")  
+            except ConnectionRefusedError as e:
+                print(e)
+
+            if re.findall(ipPattern,domain):
+                pass
+            else:
+                try:
+                    https_response = requests.get("https://"+domain,  allow_redirects=False)
+            
+                    if https_response.status_code == 301 or http_response.status_code == 302 or http_response.status_code == 304:
+                        raise HTTPException(status_code=400, detail="Malicious Redirection Detected!!")
+                    else:
+                        pass
+                except SSLError:
                         raise HTTPException(status_code=400, detail="Something went wrong with the SSL")
-                    
+                except ConnectionError:
+                        raise HTTPException(status_code=400, detail="Something went wrong when server was making a connection")
