@@ -1,11 +1,11 @@
 from ssl import SSLError
-from fastapi import FastAPI, HTTPException,Request
+from fastapi import FastAPI, HTTPException, Request, BackgroundTasks
 from fastapi.templating import Jinja2Templates # To generate front end for the FastAPI backend 
 from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel, validator # To validate user request 
 from pydantic.networks import EmailStr, AnyHttpUrl # To validate email and URL in specific user input fields
 import re
-from os import getcwd
+from os import getcwd, remove
 import random
 import string
 import shutil
@@ -50,7 +50,7 @@ async def form(request: "Request"):
     return templates.TemplateResponse("create_card.html", context)
 
 @app.post("/create-card", response_class=FileResponse)
-async def create_card(card: Item, request: "Request"):
+async def create_card(card: Item, request: "Request", background_tasks: BackgroundTasks):
     context={'request': request}
     ## Generating unique ID to append to final business card. This is to ensure every user has unique file.
     if bool(BeautifulSoup(card.twitter, "html.parser").find()):
@@ -75,6 +75,9 @@ async def create_card(card: Item, request: "Request"):
     replaceAll(final_business_card_html_file,'PORTFOLIO', clean(card.portfolio))
     replaceAll(final_business_card_html_file,'MOBILE_NUMBER', clean(card.phone))
     replaceAll(final_business_card_html_file,'TWITTER_HANDLE', card.twitter)
+
+    # Create a background task to delete PDF and HTML files
+
     try:
         options = {"enable-local-file-access": None}
         pdfkit.from_file(getcwd()+"/"+final_business_card_html_file,
@@ -83,18 +86,23 @@ async def create_card(card: Item, request: "Request"):
         print(e)
         raise HTTPException(status_code=400, detail="Malformed Input Detected")
     #save_pdf(final_business_card_pdf_file, "file://"+getcwd()+"/"+final_business_card_html_file)
-
+    print("Awesome PDF printing!!")
     headers = {'Content-Disposition': 'attachment; filename="business-card.pdf"'}
     #return Response(final_business_card_pdf_file, headers=headers, media_type='application/pdf')
-
+    background_tasks.add_task(delete_files, final_business_card_html_file, final_business_card_pdf_file)
     return FileResponse(final_business_card_pdf_file, media_type="application/pdf", headers={
              'Content-Disposition': 'inline;filename="business-card.pdf"' })
+
+def delete_files(html_file, pdf_file):
+    print("Running background tasks!!")
+    remove(html_file)
+    remove(pdf_file)
 
 def ssrf_blacklist(user_input):
     if "169.254.169.254" in user_input:
         raise HTTPException(status_code=400, detail="Malicious IP Detected!!")
         #return {"Error": "Malicious IP Detected!!"}
-    else: 
+    else:
         extractor = URLExtract()
         urls_in_payload = extractor.find_urls(user_input, only_unique=True,check_dns=True)
         print("URLs before", urls_in_payload)
