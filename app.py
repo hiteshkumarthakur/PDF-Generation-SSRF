@@ -5,6 +5,7 @@ from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel, validator # To validate user request 
 from pydantic.networks import EmailStr, AnyHttpUrl # To validate email and URL in specific user input fields
 import re
+from os import getcwd
 import random
 import string
 import shutil
@@ -75,9 +76,11 @@ async def create_card(card: Item, request: "Request"):
     replaceAll(final_business_card_html_file,'MOBILE_NUMBER', clean(card.phone))
     replaceAll(final_business_card_html_file,'TWITTER_HANDLE', card.twitter)
     try:
-        pdfkit.from_file(final_business_card_html_file,
-        final_business_card_pdf_file)
+        options = {"enable-local-file-access": None}
+        pdfkit.from_file(getcwd()+"/"+final_business_card_html_file,
+        getcwd()+"/"+final_business_card_pdf_file, options=options)
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=400, detail="Malformed Input Detected")
     #save_pdf(final_business_card_pdf_file, "file://"+getcwd()+"/"+final_business_card_html_file)
 
