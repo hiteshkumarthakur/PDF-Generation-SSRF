@@ -124,41 +124,8 @@ span {
     </div>
   </fieldset>
 </form>
-<!-- <script>
-            let formData = $("#myform").serializeArray();
-            let data = formData.reduce((acc, x) => acc[x.name] = x.value, {});
-            $.ajax({
-                url: "/create-card", 
-                type : "POST",
-                data : JSON.stringify(data), 
-                success : function(result) {
-                    alert(result);
-                    $("#myform")[0].reset();
-                },
-                error: function() {
-                    alert('Please enter valid URL');
-                }
-            })
-</script> -->
-
-<!-- <script>
-let formData = $("#myform").serializeArray();
-let data = formData.reduce((acc, x) => acc[x.name] = x.value, {});
-console.log(data)
-console.log(formData)
-
-$.ajax({
-  type: "POST",
-  url: "/create-card",
-  data: formData,
-  success: function(){},
-  dataType: "json",
-  contentType : "application/json"
-});
-</script> -->
 
 <script>
-    console.log("here!!")
   function handleSubmit(event) {
     event.preventDefault();
 
@@ -168,7 +135,6 @@ $.ajax({
 
     console.log(JSON.stringify({ value }));
 
-    console.log("here!!")
 
     const requestOptions = {
     method: 'POST',

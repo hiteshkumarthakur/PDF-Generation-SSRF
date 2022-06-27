@@ -1,38 +1,27 @@
-from enum import unique
-from gettext import find
-from multiprocessing import context
-from pydoc import HTMLRepr
 from ssl import SSLError
-from unittest import expectedFailure
-from fastapi import FastAPI, HTTPException, Form, Request
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import RedirectResponse, PlainTextResponse, HTMLResponse, FileResponse, StreamingResponse, Response
-from pydantic import BaseModel, ValidationError, validator
-from typing import Union
-from pydantic.networks import EmailStr, AnyHttpUrl
+from fastapi import FastAPI, HTTPException,Request
+from fastapi.templating import Jinja2Templates # To generate front end for the FastAPI backend 
+from fastapi.responses import HTMLResponse, FileResponse
+from pydantic import BaseModel, validator # To validate user request 
+from pydantic.networks import EmailStr, AnyHttpUrl # To validate email and URL in specific user input fields
 import re
 import random
 import string
 import shutil
 import fileinput
 import sys
-#from pyppdf import save_pdf
-from os import getcwd
 import pdfkit
-#import asyncio
-#from time import sleep
-from bs4 import BeautifulSoup
-from  urlextract import URLExtract
-import tldextract
-from ipaddress import IPv4Address
-from socket import gethostbyname, gaierror
-import requests
+from bs4 import BeautifulSoup # To check if a user input is HTML
+from  urlextract import URLExtract # To extract URLs from user input 
+import tldextract # To extract domains from URLs in user input 
+from ipaddress import IPv4Address # To validate if a user input has specific IP address
+from socket import gethostbyname, gaierror # To resolve domains in user input
+import requests # To check HTTP redirection on URLs in user input
+from bleach import clean
 
 app = FastAPI()
 
-
 templates = Jinja2Templates(directory="templates")
-
 
 class Item(BaseModel):
     name: str
@@ -79,11 +68,11 @@ async def create_card(card: Item, request: "Request"):
                 line = line.replace(searchExp,replaceExp)
             sys.stdout.write(line)
 
-    replaceAll(final_business_card_html_file,'PERSON_NAME',card.name)
-    replaceAll(final_business_card_html_file,'PERSON_JOB', card.job)
-    replaceAll(final_business_card_html_file,'EMAIL_ADDRESS', card.email)
-    replaceAll(final_business_card_html_file,'PORTFOLIO', card.portfolio)
-    replaceAll(final_business_card_html_file,'MOBILE_NUMBER', card.phone)
+    replaceAll(final_business_card_html_file,'PERSON_NAME',clean(card.name))
+    replaceAll(final_business_card_html_file,'PERSON_JOB', clean(card.job))
+    replaceAll(final_business_card_html_file,'EMAIL_ADDRESS', clean(card.email))
+    replaceAll(final_business_card_html_file,'PORTFOLIO', clean(card.portfolio))
+    replaceAll(final_business_card_html_file,'MOBILE_NUMBER', clean(card.phone))
     replaceAll(final_business_card_html_file,'TWITTER_HANDLE', card.twitter)
     try:
         pdfkit.from_file(final_business_card_html_file,
@@ -97,13 +86,6 @@ async def create_card(card: Item, request: "Request"):
 
     return FileResponse(final_business_card_pdf_file, media_type="application/pdf", headers={
              'Content-Disposition': 'inline;filename="business-card.pdf"' })
-    # responses = {
-    #     200: {
-    #         "content": {"application/pdf": {}}
-    #     }
-    # }
-
-    # return templates.TemplateResponse(final_business_card_pdf_file, context)
 
 def ssrf_blacklist(user_input):
     if "169.254.169.254" in user_input:
