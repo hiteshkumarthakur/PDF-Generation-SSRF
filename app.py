@@ -82,8 +82,6 @@ async def create_card(card: Item, request: "Request", background_tasks: Backgrou
         options = {"enable-local-file-access": None}
         pdfkit.from_file(getcwd()+"/"+final_business_card_html_file,
         getcwd()+"/"+final_business_card_pdf_file, options=options)
-    except pdfkit.UnknownNetworkError as e:
-        print(e)
     except Exception as e:
         print(e)
         raise HTTPException(status_code=400, detail="Malformed Input Detected")
@@ -181,6 +179,7 @@ def ssrf_blacklist(user_input):
                         raise HTTPException(status_code=400, detail="Malicious Redirection Detected!!")
                     else:
                         pass
+                        print("great!!")
                 except SSLError:
                         raise HTTPException(status_code=400, detail="Something went wrong with the SSL")
                 except ConnectionError:
