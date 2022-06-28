@@ -20,6 +20,7 @@ from socket import gethostbyname, gaierror # To resolve domains in user input
 import requests # To check HTTP redirection on URLs in user input
 from bleach import clean # To sanitize the HTML input from the user
 from urllib3.exceptions import NewConnectionError
+from urllib.parse import urlparse
 
 app = FastAPI()
 
@@ -112,7 +113,7 @@ def ssrf_blacklist(user_input):
         ipPattern = re.compile("(?:(?:1\d\d|2[0-5][0-5]|2[0-4]\d|0?[1-9]\d|0?0?\d)\.){3}(?:1\d\d|2[0-5][0-5]|2[0-4]\d|0?[1-9]\d|0?0?\d)")
         ip_addresses_in_payload = []
         for url in urls_in_payload:
-            #print("url is " + url)
+            print("url is " + url)
             ip = re.findall(ipPattern,url)
             if ip:
                 for i in ip:
@@ -154,21 +155,23 @@ def ssrf_blacklist(user_input):
         ipPattern = re.compile("(?:(?:1\d\d|2[0-5][0-5]|2[0-4]\d|0?[1-9]\d|0?0?\d)\.){3}(?:1\d\d|2[0-5][0-5]|2[0-4]\d|0?[1-9]\d|0?0?\d)")
         
         ## Check if domains have 302/301 resolution
-        for domain in domains_in_payload:
-
-            print("Domain is", domain)
+        for url in urls_in_payload:
+            print("URL before urlpase is", url)
+            url = urlparse(url).netloc
+            print("URL after urlpase is", url)
 
             try:
-                http_response = requests.get("http://"+domain,  allow_redirects=False)
+                # <iframe src=http://18.237.130.95:5000>
+                http_response = requests.get("http://"+url,  allow_redirects=False)
                 #print(http_response)
                 if http_response.status_code == 301 or http_response.status_code == 302 or http_response.status_code == 304:
                         raise HTTPException(status_code=400, detail="Malicious Redirection Detected!!")
                 else:
                     pass
-                if re.findall(ipPattern,domain):
+                if re.findall(ipPattern,url):
                     pass
                 else:
-                    https_response = requests.get("https://"+domain,  allow_redirects=False)
+                    https_response = requests.get("https://"+url,  allow_redirects=False)
                     if https_response.status_code == 301 or http_response.status_code == 302 or http_response.status_code == 304:
                         raise HTTPException(status_code=400, detail="Malicious Redirection Detected!!")
                     else:
