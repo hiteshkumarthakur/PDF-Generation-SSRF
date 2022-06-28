@@ -82,6 +82,7 @@ async def create_card(card: Item, request: "Request", background_tasks: Backgrou
     # Create a background task to delete PDF and HTML files
 
     try:
+        print("Awesome PDF printing!!")
         options = {"enable-local-file-access": None}
         pdfkit.from_file(getcwd()+"/"+final_business_card_html_file,
         getcwd()+"/"+final_business_card_pdf_file, options=options)
@@ -89,7 +90,7 @@ async def create_card(card: Item, request: "Request", background_tasks: Backgrou
         print(e)
         raise HTTPException(status_code=400, detail="Malformed Input Detected")
     #save_pdf(final_business_card_pdf_file, "file://"+getcwd()+"/"+final_business_card_html_file)
-    print("Awesome PDF printing!!")
+    
     headers = {'Content-Disposition': 'attachment; filename="business-card.pdf"'}
     #return Response(final_business_card_pdf_file, headers=headers, media_type='application/pdf')
     background_tasks.add_task(delete_files, final_business_card_html_file, final_business_card_pdf_file)
