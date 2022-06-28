@@ -18,7 +18,8 @@ import tldextract # To extract domains from URLs in user input
 from ipaddress import IPv4Address # To validate if a user input has specific IP address
 from socket import gethostbyname, gaierror # To resolve domains in user input
 import requests # To check HTTP redirection on URLs in user input
-from bleach import clean
+from bleach import clean # To sanitize the HTML input from the user
+from urllib3.exceptions import NewConnectionError
 
 app = FastAPI()
 
@@ -149,39 +150,34 @@ def ssrf_blacklist(user_input):
                     raise HTTPException(status_code=400, detail="Malicious Resolution Detected!!")
         except gaierror as e:
             print(e)
+
+        ipPattern = re.compile("(?:(?:1\d\d|2[0-5][0-5]|2[0-4]\d|0?[1-9]\d|0?0?\d)\.){3}(?:1\d\d|2[0-5][0-5]|2[0-4]\d|0?[1-9]\d|0?0?\d)")
         
         ## Check if domains have 302/301 resolution
         for domain in domains_in_payload:
 
-            ipPattern = re.compile("(?:(?:1\d\d|2[0-5][0-5]|2[0-4]\d|0?[1-9]\d|0?0?\d)\.){3}(?:1\d\d|2[0-5][0-5]|2[0-4]\d|0?[1-9]\d|0?0?\d)")
-
             print("Domain is", domain)
+
             try:
                 http_response = requests.get("http://"+domain,  allow_redirects=False)
-                print(http_response)
+                #print(http_response)
                 if http_response.status_code == 301 or http_response.status_code == 302 or http_response.status_code == 304:
                         raise HTTPException(status_code=400, detail="Malicious Redirection Detected!!")
                 else:
                     pass
-            except SSLError:
-                    raise HTTPException(status_code=400, detail="Something went wrong with the SSL")
-            except ConnectionError:
-                    raise HTTPException(status_code=400, detail="Something went wrong when server was making a connection")  
-            except ConnectionRefusedError as e:
-                print(e)
-
-            if re.findall(ipPattern,domain):
-                pass
-            else:
-                try:
+                if re.findall(ipPattern,domain):
+                    pass
+                else:
                     https_response = requests.get("https://"+domain,  allow_redirects=False)
-            
                     if https_response.status_code == 301 or http_response.status_code == 302 or http_response.status_code == 304:
                         raise HTTPException(status_code=400, detail="Malicious Redirection Detected!!")
                     else:
                         pass
-                        print("great!!")
-                except SSLError:
+            except SSLError:
                         raise HTTPException(status_code=400, detail="Something went wrong with the SSL")
-                except ConnectionError:
+            except ConnectionError:
+                        raise HTTPException(status_code=400, detail="Something went wrong when server was making a connection")
+            except NewConnectionError as e:
+                        raise HTTPException(status_code=400, detail="Something went wrong when server was making a connection")
+            except Exception as e:
                         raise HTTPException(status_code=400, detail="Something went wrong when server was making a connection")
