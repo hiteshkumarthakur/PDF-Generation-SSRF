@@ -163,25 +163,30 @@ def ssrf_blacklist(user_input):
 
             try:
                 # <iframe src=http://18.237.130.95:5000>
+                print("Checking HTTP redirection")
                 http_response = requests.get("http://"+url,  allow_redirects=False)
+                print(http_response.status_code)
                 #print(http_response)
                 if http_response.status_code == 301 or http_response.status_code == 302 or http_response.status_code == 304:
                         raise HTTPException(status_code=400, detail="Malicious Redirection Detected!!")
                 else:
                     pass
+
                 if re.findall(ipPattern,url):
                     pass
                 else:
+                    print("Checking HTTPS redirection")
                     https_response = requests.get("https://"+url,  allow_redirects=False)
                     if https_response.status_code == 301 or http_response.status_code == 302 or http_response.status_code == 304:
                         raise HTTPException(status_code=400, detail="Malicious Redirection Detected!!")
                     else:
                         pass
-            except SSLError:
+            except SSLError as e:
+                        print(e)
                         raise HTTPException(status_code=400, detail="Something went wrong with the SSL")
-            except ConnectionError:
+            except ConnectionError as e:
+                        print(e)
                         raise HTTPException(status_code=400, detail="Something went wrong when server was making a connection")
             except NewConnectionError as e:
-                        raise HTTPException(status_code=400, detail="Something went wrong when server was making a connection")
-            except Exception as e:
-                        raise HTTPException(status_code=400, detail="Something went wrong when server was making a connection")
+                        print(e)
+                        raise HTTPException(status_code=400, detail="Something went wrong when server was making a new connection")
