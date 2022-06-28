@@ -53,6 +53,7 @@ async def form(request: "Request"):
 async def create_card(card: Item, request: "Request", background_tasks: BackgroundTasks):
     context={'request': request}
     ## Generating unique ID to append to final business card. This is to ensure every user has unique file.
+    print(card)
     if bool(BeautifulSoup(card.twitter, "html.parser").find()):
         print("HTML Detected")
         ssrf_blacklist(card.twitter)
