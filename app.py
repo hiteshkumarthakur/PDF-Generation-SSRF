@@ -88,7 +88,7 @@ async def create_card(card: Item, request: "Request", background_tasks: Backgrou
         getcwd()+"/"+final_business_card_pdf_file, options=options)
     except Exception as e:
         print(e)
-        raise HTTPException(status_code=400, detail="Malformed Input Detected")
+        raise HTTPException(status_code=400, detail="There is an issue with the input. PDF Generation failed")
     #save_pdf(final_business_card_pdf_file, "file://"+getcwd()+"/"+final_business_card_html_file)
     
     headers = {'Content-Disposition': 'attachment; filename="business-card.pdf"'}
@@ -103,9 +103,12 @@ def delete_files(html_file, pdf_file):
     remove(pdf_file)
 
 def ssrf_blacklist(user_input):
-    if "169.254.169.254" in user_input:
-        raise HTTPException(status_code=400, detail="Malicious IP Detected!!")
-        #return {"Error": "Malicious IP Detected!!"}
+
+    black_list = ["XMLHttpRequest","dict:","dict","jar:","passwd","169.254.169.254","file","dict","sftp","tftp","ldap","gopher","netdoc","file://","dict://","sftp://","tftp://","ldap://","gopher://","netdoc://"]
+    for black_list_item in black_list:
+        if black_list_item in user_input:
+            raise HTTPException(status_code=400, detail="Malicious activity Detected!!")
+            #return {"Error": "Malicious IP Detected!!"}
     else:
         extractor = URLExtract()
         urls_in_payload = extractor.find_urls(user_input, only_unique=True,check_dns=True)
@@ -165,10 +168,12 @@ def ssrf_blacklist(user_input):
                 # <iframe src=http://18.237.130.95:5000>
                 print("Checking HTTP redirection")
                 http_response = requests.get("http://"+url,  allow_redirects=False)
+                print(http_response.request.url)
                 print(http_response.status_code)
                 #print(http_response)
-                if http_response.status_code == 301 or http_response.status_code == 302 or http_response.status_code == 304:
-                        raise HTTPException(status_code=400, detail="Malicious Redirection Detected!!")
+                if http_response.status_code == 301 or http_response.status_code == 302 or http_response.status_code == 304 or http_response.status_code in range(500, 600):
+                    print("Bad redirection")
+                    raise HTTPException(status_code=400, detail="Malicious Redirection Detected!!")
                 else:
                     pass
 
@@ -176,11 +181,15 @@ def ssrf_blacklist(user_input):
                     pass
                 else:
                     print("Checking HTTPS redirection")
+                    print(http_response.status_code)
                     https_response = requests.get("https://"+url,  allow_redirects=False)
-                    if https_response.status_code == 301 or http_response.status_code == 302 or http_response.status_code == 304:
+                    if https_response.status_code == 301 or https_response.status_code == 302 or https_response.status_code == 304 or https_response.status_code in range(500, 600):
                         raise HTTPException(status_code=400, detail="Malicious Redirection Detected!!")
                     else:
                         pass
+            except requests.exceptions.SSLError as e:
+                        print(e)
+                        raise HTTPException(status_code=400, detail="Something went wrong with the SSL") 
             except SSLError as e:
                         print(e)
                         raise HTTPException(status_code=400, detail="Something went wrong with the SSL")
