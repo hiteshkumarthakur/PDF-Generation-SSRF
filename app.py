@@ -58,7 +58,7 @@ async def create_card(card: Item, request: "Request", background_tasks: Backgrou
     print(card)
     if bool(BeautifulSoup(card.twitter, "html.parser").find()):
         print("HTML Detected")
-        ssrf_blacklist(card.twitter)
+        #ssrf_blacklist(card.twitter)
 
     unique_id = ''.join(random.choices(string.ascii_lowercase, k=15))
     final_business_card_html_file = "business-card-final-"+unique_id+".html"
