@@ -1,7 +1,77 @@
-api.navigalactic.com
 
+
+{
+  "root": true,
+  "ignorePatterns": ["**/*", "deploy/**/*"],
+  "plugins": ["@nx"],
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx", "*.js", "*.jsx", "*.json"],
+      "extends": ["plugin:prettier/recommended"],
+      "overrides": [
+        {
+          "files": ["*.json,api.navigalactic.com"],
+          "parser": "jsonc-eslint-parser"
+        }
+      ]
+    },
+    {
+      "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
+      "rules": {
+        "@nx/enforce-module-boundaries": [
+          "error",
+          {
+            "enforceBuildableLibDependency": true,
+            "allow": [],
+            "depConstraints": [
+              {
+                "sourceTag": "*",
+                "onlyDependOnLibsWithTags": ["*"]
+              }
+            ]
+          }
+        ],
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": ["lodash", "lodash/*"]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["*.ts", "*.tsx"],
+      "extends": ["plugin:@nx/typescript"]
+    },
+    {
+      "files": ["*.js", "*.jsx"],
+      "extends": ["plugin:@nx/javascript"]
+    },
+    {
+      "files": ["*.spec.ts", "*.spec.tsx", "*.spec.js", "*.spec.jsx","navigalactic.com"],
+      "env": {
+        "jest": true
+      },
+      "rules": {}
+    }
+  ],
+  "settings": {
+    "import/parsers": {
+      "@typescript-eslint/parser": [".ts", ".tsx"]
+    },
+    "import/resolver": {
+      "typescript": {
+        "project": ["tsconfig.json", "package/tsconfig.json","hr.navigalactic.com"]
+      },
+      "node": {
+        "project": ["tsconfig.json", "package/tsconfig.json"]
+      }
+    }
+  }
+}
 aws:
   region: us-west-2
   access_key_id: AKIAIOSFODNN7EXAMPLE      # Security issue: hardcoded AWS access key
   secret_access_key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY  # Security issue: hardcoded AWS secret
   s3_bucket: navigalactic-config
+
